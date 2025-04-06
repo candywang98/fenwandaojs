@@ -16,7 +16,7 @@ ui.layout(
         </horizontal>
         <horizontal margin="0 10 0 0">
             <text textSize="16sp" layout_gravity="center">抢票时间: </text>
-            <input id="timeInput" hint="格式: MM-DD HH:mm:ss" textSize="16sp" layout_weight="1" text="05-09 12:00:00"/>
+            <input id="timeInput" hint="格式: MM-DD HH:mm:ss" textSize="16sp" layout_weight="1" text="04-06 14:23:00"/>
         </horizontal>
         <horizontal margin="0 10 0 0">
             <text textSize="16sp" layout_gravity="center">票价选择: </text>
@@ -121,11 +121,27 @@ function performConfirmClick(isDebug, coords) {
                 foundAndClicked = true;
             }
             
+            // 方式1b: 通过准确的控件类型和描述查找组队抢票
+            else if (className("android.view.View").desc("组队抢票").exists()) {
+                console.log("方式1b: 找到组队抢票控件(android.view.View + desc)，点击中...");
+                updateStatus("找到组队抢票控件(view+desc)，点击中...", "#00aa00");
+                className("android.view.View").desc("组队抢票").findOne().click();
+                foundAndClicked = true;
+            }
+            
             // 方式2: 通过文本查找
             else if (text("预约抢票").exists()) {
                 console.log("方式2: 找到预约抢票按钮(text)，点击中...");
                 updateStatus("找到预约抢票按钮(text)，点击中...", "#00aa00");
                 text("预约抢票").findOne().click();
+                foundAndClicked = true;
+            }
+            
+            // 方式2b: 通过文本查找组队抢票
+            else if (text("组队抢票").exists()) {
+                console.log("方式2b: 找到组队抢票按钮(text)，点击中...");
+                updateStatus("找到组队抢票按钮(text)，点击中...", "#00aa00");
+                text("组队抢票").findOne().click();
                 foundAndClicked = true;
             }
             
@@ -137,6 +153,14 @@ function performConfirmClick(isDebug, coords) {
                 foundAndClicked = true;
             }
             
+            // 方式3b: 通过任意控件类型和描述查找组队抢票
+            else if (descContains("组队抢票").exists()) {
+                console.log("方式3b: 找到组队抢票的控件(descContains)，点击中...");
+                updateStatus("找到组队抢票控件(descContains)，点击中...", "#00aa00");
+                descContains("组队抢票").findOne().click();
+                foundAndClicked = true;
+            }
+            
             // 方式4: 通过文本部分匹配查找
             else if (textContains("预约抢票").exists()) {
                 console.log("方式4: 找到预约抢票控件(textContains)，点击中...");
@@ -145,11 +169,27 @@ function performConfirmClick(isDebug, coords) {
                 foundAndClicked = true;
             }
             
+            // 方式4b: 通过文本部分匹配查找组队抢票
+            else if (textContains("组队抢票").exists()) {
+                console.log("方式4b: 找到组队抢票控件(textContains)，点击中...");
+                updateStatus("找到组队抢票控件(textContains)，点击中...", "#00aa00");
+                textContains("组队抢票").findOne().click();
+                foundAndClicked = true;
+            }
+            
             // 方式5: 通过按钮类寻找
             else if (className("android.widget.Button").textContains("预约").exists()) {
                 console.log("方式5: 找到预约按钮控件，点击中...");
                 updateStatus("找到预约按钮控件，点击中...", "#00aa00");
                 className("android.widget.Button").textContains("预约").findOne().click();
+                foundAndClicked = true;
+            }
+            
+            // 方式5b: 通过按钮类寻找组队
+            else if (className("android.widget.Button").textContains("组队").exists()) {
+                console.log("方式5b: 找到组队按钮控件，点击中...");
+                updateStatus("找到组队按钮控件，点击中...", "#00aa00");
+                className("android.widget.Button").textContains("组队").findOne().click();
                 foundAndClicked = true;
             }
             
@@ -371,46 +411,52 @@ function isInBookingPage() {
     // 尝试多种方式检查预约抢票控件
     
     // 方式1: 通过准确的控件类型和描述查找
-    if (className("android.view.View").desc("预约抢票").exists()) {
-        console.log("✅ 方式1成功: 找到预约抢票控件(android.view.View + desc)");
+    if (className("android.view.View").desc("预约抢票").exists() || className("android.view.View").desc("组队抢票").exists()) {
+        console.log("✅ 方式1成功: 找到预约/组队抢票控件(android.view.View + desc)");
+        return true;
+    }
+    
+    // 新方式: 通过Button类型和描述查找
+    if (className("android.widget.Button").desc("预约抢票").exists() || className("android.widget.Button").desc("组队抢票").exists()) {
+        console.log("✅ 新方式成功: 找到预约/组队抢票控件(android.widget.Button + desc)");
         return true;
     }
     
     // 方式2: 通过文本查找
-    if (text("预约抢票").exists()) {
-        console.log("✅ 方式2成功: 找到预约抢票按钮(text)");
+    if (text("预约抢票").exists() || text("组队抢票").exists()) {
+        console.log("✅ 方式2成功: 找到预约/组队抢票按钮(text)");
         return true;
     }
     
     // 方式3: 通过任意控件类型和描述查找
-    if (descContains("预约抢票").exists()) {
-        console.log("✅ 方式3成功: 找到包含预约抢票的控件(任意类型 + descContains)");
+    if (descContains("预约抢票").exists() || descContains("组队抢票").exists()) {
+        console.log("✅ 方式3成功: 找到包含预约/组队抢票的控件(任意类型 + descContains)");
         return true;
     }
     
     // 方式4: 通过文本部分匹配查找
-    if (textContains("预约抢票").exists()) {
-        console.log("✅ 方式4成功: 找到包含预约抢票的控件(textContains)");
+    if (textContains("预约抢票").exists() || textContains("组队抢票").exists()) {
+        console.log("✅ 方式4成功: 找到包含预约/组队抢票的控件(textContains)");
         return true;
     }
     
     // 方式5: 通过按钮类寻找
-    if (className("android.widget.Button").textContains("预约").exists()) {
-        console.log("✅ 方式5成功: 找到包含预约的按钮控件");
+    if (className("android.widget.Button").textContains("预约").exists() || className("android.widget.Button").textContains("组队").exists()) {
+        console.log("✅ 方式5成功: 找到包含预约/组队的按钮控件");
         return true;
     }
     
     // 方式6: 通过控件ID查找（如果应用使用ID）
     try {
-        if (id("book_btn").exists() || id("reserve_btn").exists()) {
-            console.log("✅ 方式6成功: 找到可能的预约按钮ID");
+        if (id("book_btn").exists() || id("reserve_btn").exists() || id("team_btn").exists()) {
+            console.log("✅ 方式6成功: 找到可能的预约/组队按钮ID");
             return true;
         }
     } catch (e) {
         // ID方式查找可能在某些版本不支持，忽略错误
     }
     
-    console.log("❌ 未检测到预约抢票页面，尝试了所有检测方式均失败");
+    console.log("❌ 未检测到预约/组队抢票页面，尝试了所有检测方式均失败");
     return false;
 }
 
@@ -526,61 +572,27 @@ ui.startGrabBtn.click(function() {
     
     // 延迟检查页面是否在预约抢票页面，给控件加载足够时间
     setTimeout(function() {
-        updateStatus("正在进一步检测页面类型...");
+        updateStatus("正在初始化抢票流程...");
         
         // 如果是调试模式，显示调试信息
         if (ui.debugModeCheck.checked) {
-            // 如果30秒内没找到控件，提示用户检查页面
-            var checkTimeout = setTimeout(function() {
-                toast("长时间未检测到预约控件，请确认页面是否正确");
-                updateStatus("未检测到预约控件，请检查页面", "#aa0000");
-            }, 30000);
+            updateStatus("调试模式：开始分析页面控件", "#0000aa");
+            toast("调试模式已启动，将分析页面控件");
             
-            // 使用循环多次尝试检测控件
-            var checkInterval = setInterval(function() {
-                if (isInBookingPage()) {
-                    clearInterval(checkInterval);
-                    clearTimeout(checkTimeout);
-                    
-                    updateStatus("已检测到预约页面，开始调试", "#00aa00");
-                    toast("已检测到预约页面");
-                    
-                    // 暂停一秒后开始调试
-                    setTimeout(function() {
-                        showDebugInfo(true);
-                        updateStatus("调试模式：显示坐标并执行点击测试", "#0000aa");
-                    }, 1000);
-                }
-            }, 3000); // 每3秒尝试一次
-            
-            // 第一次立即检查
-            if (isInBookingPage()) {
-                clearInterval(checkInterval);
-                clearTimeout(checkTimeout);
-                
-                updateStatus("已检测到预约页面，开始调试", "#00aa00");
-                toast("已检测到预约页面");
-                
-                setTimeout(function() {
-                    showDebugInfo(true);
-                    updateStatus("调试模式：显示坐标并执行点击测试", "#0000aa");
-                }, 1000);
-            } else {
-                updateStatus("等待检测到预约页面...", "#ffaa00");
-                toast("正在等待检测到预约页面，请确保页面显示正确");
-            }
+            // 暂停一秒后开始调试
+            setTimeout(function() {
+                showDebugInfo(true);
+                updateStatus("调试模式：显示坐标并执行点击测试", "#0000aa");
+            }, 1000);
         } else {
-            // 非调试模式，检查是否在预约抢票页面
-            if (!isInBookingPage()) {
-                updateStatus("请先进入预约抢票页面", "#aa0000");
-                toast("请先进入预约抢票页面");
-                return;
-            }
+            // 非调试模式，直接启动抢票流程
+            updateStatus("正常模式：启动抢票流程", "#00aa00");
+            toast("正在启动抢票流程，将自动检测页面状态");
             
             // 直接启动抢票流程
             startFenwandaoTicketGrabbing();
         }
-    }, 5000); // 等待5秒钟再检查，给控件足够时间加载
+    }, 3000); // 等待3秒钟再初始化，给控件足够时间加载
 });
 
 ui.stopGrabBtn.click(function() {
@@ -607,9 +619,9 @@ var FENWANDAO_CONFIG = {
     
     // 点击配置
     CLICK_CONFIG: {
-        MAX_ATTEMPTS: 100,           // 最大点击尝试次数 (原来是30次，现在增加到50次)
-        INTERVAL: 20,               // 点击间隔（毫秒）- 原来是50ms，现在降低到20ms
-        STAGE_TIMEOUT: 3000         // 每个阶段超时时间（毫秒）- 原来是5000ms，现在减少到3000ms
+        MAX_ATTEMPTS: 200,           // 最大点击尝试次数 (大幅增加)
+        INTERVAL: 1,                 // 点击间隔（毫秒）- 降低到1ms实现最快点击
+        STAGE_TIMEOUT: 1000          // 每个阶段超时时间（毫秒）- 减少到1000ms
     }
 };
 
@@ -641,6 +653,9 @@ function waitForSaleStart(targetTime) {
                     // 倒计时结束，清除定时器
                     clearInterval(countdownTimer);
                     updateStatus("开售时间到，开始抢票！", "#ff0000");
+                    
+                    // 直接开始刷新页面查找购买按钮
+                    startRefreshUntilBuyButton();
                     return;
                 }
                 
@@ -689,91 +704,98 @@ function waitForSaleStart(targetTime) {
  */
 function startRefreshUntilBuyButton() {
     threads.start(function() {
-        updateStatus("开始寻找购买按钮...");
-        
-        // 先检查是否已经在演出详情页
-        var isInDetailPage = false;
         try {
-            // 尝试通过特征元素判断是否在演出详情页
-            if (text("场次").exists() || text("购票须知").exists() || 
-                text("立即购买").exists() || text("立即预订").exists() || 
-                text("选择场次").exists() || text("选择票品").exists()) {
-                isInDetailPage = true;
-                updateStatus("已检测到演出详情页", "#00aa00");
-            } else {
-                updateStatus("没有检测到演出详情页，请确保手动进入正确页面", "#ffaa00");
-                toast("请手动进入演出详情页");
-                sleep(2000); // 给用户一些时间来操作，减少等待时间
+            updateStatus("开始寻找购买按钮...");
+            
+            // 首先检查是否已经在详情页（组队抢票按钮作为主要判断依据）
+            if (text("组队抢票").exists() || descContains("组队抢票").exists() || 
+                text("预约抢票").exists() || descContains("预约抢票").exists() ||
+                className("android.widget.Button").desc("组队抢票").exists() ||
+                className("android.widget.Button").desc("预约抢票").exists()) {
+                updateStatus("已经在演出详情页，开始寻找购买按钮", "#00aa00");
+                toast("已经在演出详情页，将持续检测购买按钮");
+                
+                // 直接开始监测购买按钮，不需要刷新页面
+                startBuyButtonMonitoring();
+                return;
             }
+            
+            // 循环检测直到确认进入演出详情页或直接找到购买按钮
+            var isInDetailPage = false;
+            var foundBuyButton = false;
+            var detailPageCheckAttempts = 0;
+            var maxDetailPageCheckAttempts = 30; // 最多尝试30次，可以根据需要调整
+            
+            while (!isInDetailPage && !foundBuyButton && detailPageCheckAttempts < maxDetailPageCheckAttempts) {
+                detailPageCheckAttempts++;
+                
+                try {
+                    // 首先检查是否直接找到购买按钮，如果找到就直接开始点击
+                    if (text("立即购买").exists()) {
+                        foundBuyButton = true;
+                        updateStatus("直接找到立即购买按钮！", "#00aa00");
+                        startBuyButtonClicking();
+                        return; // 直接返回，不继续执行后面的代码
+                    } else if (text("立即预定").exists() || text("立即预订").exists()) {
+                        foundBuyButton = true;
+                        updateStatus("直接找到立即预订按钮！", "#00aa00");
+                        startBuyButtonClicking();
+                        return;
+                    } else if (text("特惠购票").exists()) {
+                        foundBuyButton = true;
+                        updateStatus("直接找到特惠购票按钮！", "#00aa00");
+                        startBuyButtonClicking();
+                        return;
+                    }
+                    
+                    // 如果没找到购买按钮，检查是否在演出详情页
+                    // 使用组队抢票或预约抢票按钮作为主要判断依据
+                    if (text("组队抢票").exists() || descContains("组队抢票").exists() || 
+                        text("预约抢票").exists() || descContains("预约抢票").exists() ||
+                        className("android.widget.Button").desc("组队抢票").exists() ||
+                        className("android.widget.Button").desc("预约抢票").exists()) {
+                        isInDetailPage = true;
+                        updateStatus("已检测到演出详情页（找到组队/预约抢票按钮）", "#00aa00");
+                    } 
+                    // 其他详情页特征作为辅助判断
+                    else if (text("场次").exists() || text("购票须知").exists() || 
+                        text("选择场次").exists() || text("选择票品").exists()) {
+                        isInDetailPage = true;
+                        updateStatus("已检测到演出详情页（辅助特征）", "#00aa00");
+                    } else {
+                        // 更新检测状态，每5次提示一次
+                        if (detailPageCheckAttempts % 5 === 0) {
+                            updateStatus("正在尝试检测演出详情页... 已尝试 " + detailPageCheckAttempts + " 次", "#ffaa00");
+                            toast("请确保手动进入演出详情页，系统正在持续检测");
+                        }
+                        
+                        // 尝试执行滑动刷新操作
+                        swipe(device.width / 2, device.height / 4, device.width / 2, device.height / 2, 100);
+                        
+                        // 等待一段时间再次检测
+                        sleep(5000); // 每1秒检测一次，减少刷新频率
+                    }
+                } catch (e) {
+                    console.error("检查页面失败: " + e);
+                    sleep(5000); // 出错后等待一秒再继续
+                }
+            }
+            
+            // 如果找到了购买按钮，前面已经返回了，不会执行到这里
+            
+            // 如果最终仍未检测到详情页，提示用户并退出
+            if (!isInDetailPage) {
+                updateStatus("多次尝试后未能检测到演出详情页，请手动检查页面", "#aa0000");
+                toast("未能检测到演出详情页，请确保进入正确页面后再试");
+                return;
+            }
+            
+            // 已确认在详情页，开始搜索购买按钮
+            updateStatus("确认在演出详情页，持续寻找购买按钮", "#00aa00");
+            startBuyButtonMonitoring();
         } catch (e) {
             console.error("检查页面失败: " + e);
-        }
-        
-        var startTime = new Date().getTime();
-        var foundButton = false;
-        var attempts = 0;
-        
-        while (!foundButton) {
-            attempts++;
-            
-            // 在状态中显示当前尝试次数
-            if (attempts % 10 === 0) {
-                updateStatus("尝试寻找按钮中... 已尝试 " + attempts + " 次");
-            }
-            
-            // 尝试查找各种可能的购买按钮，增加"预约抢票"按钮识别
-            if (text("预约抢票").exists()) {
-                foundButton = true;
-                updateStatus("找到预约抢票按钮！", "#00aa00");
-                startBuyButtonClicking();
-                break;
-            } else if (text("立即购买").exists()) {
-                foundButton = true;
-                updateStatus("找到立即购买按钮！", "#00aa00");
-                startBuyButtonClicking();
-                break;
-            } else if (text("立即预定").exists() || text("立即预订").exists()) {
-                foundButton = true;
-                updateStatus("找到立即预订按钮！", "#00aa00");
-                startBuyButtonClicking();
-                break;
-            } else if (text("确认选择").exists()) {
-                foundButton = true;
-                updateStatus("找到确认选择按钮！", "#00aa00");
-                startBuyButtonClicking();
-                break;
-            }
-            
-            // 检查是否超时
-            var currentTime = new Date().getTime();
-            if (currentTime - startTime > FENWANDAO_CONFIG.CLICK_CONFIG.STAGE_TIMEOUT) {
-                updateStatus("查找购买按钮超时，尝试手动点击预设位置", "#ffaa00");
-                
-                // 尝试点击预设位置
-                threads.start(function() {
-                    click(FENWANDAO_CONFIG.COORDS.BUY_NOW_BTN.x, FENWANDAO_CONFIG.COORDS.BUY_NOW_BTN.y);
-                });
-                
-                sleep(100); // 减少等待时间
-                
-                // 检查是否进入下一页面
-                if (text("选择场次").exists() || text("选择票品").exists() || text("提交订单").exists()) {
-                    updateStatus("已进入选择页面", "#00aa00");
-                    selectTicketAndConfirm();
-                    break;
-                }
-                
-                // 重新开始寻找
-                startTime = new Date().getTime();
-            }
-            
-            // 加快刷新频率，每次都尝试刷新
-            if (attempts % 1 === 0) { // 每1次尝试就刷新一次，即每次都刷新
-                swipe(device.width / 2, device.height / 4, device.width / 2, device.height / 2, 100); // 缩短滑动时间
-            }
-            
-            // 最小化等待时间
-            sleep(5); // 从10ms减少到5ms
+            sleep(1000); // 出错后等待一秒再继续
         }
     });
 }
@@ -783,58 +805,199 @@ function startRefreshUntilBuyButton() {
  */
 function startBuyButtonClicking() {
     threads.start(function() {
-        updateStatus("开始点击购买按钮...");
+        updateStatus("开始高频点击购买按钮...", "#00aa00");
         
+        // 减少延迟，立即执行第一次点击
         var clicked = false;
         var attempts = 0;
         var maxAttempts = FENWANDAO_CONFIG.CLICK_CONFIG.MAX_ATTEMPTS;
         
-        while (!clicked && attempts < maxAttempts) {
-            attempts++;
-            
-            // 尝试通过文本查找按钮
-            if (text("预约抢票").exists()) {
-                updateStatus("找到预约抢票按钮，点击中...");
-                text("预约抢票").findOne().click();
+        // 立即进行一次尝试
+        try {
+            console.log("立即尝试点击购买按钮...");
+            // 立即购买按钮
+            if (text("立即购买").exists()) {
+                updateStatus("找到立即购买按钮，立即点击...");
+                var buyBtn = text("立即购买").findOne(200);
+                if (buyBtn) {
+                    buyBtn.click();
+                    console.log("立即购买按钮点击完成");
+                } else {
+                    click(FENWANDAO_CONFIG.COORDS.BUY_NOW_BTN.x, FENWANDAO_CONFIG.COORDS.BUY_NOW_BTN.y);
+                    console.log("使用坐标点击立即购买按钮");
+                }
                 clicked = true;
-            } else if (text("立即购买").exists()) {
-                updateStatus("找到立即购买按钮，点击中...");
-                text("立即购买").findOne().click();
+            } 
+            // 立即预定/预订按钮
+            else if (text("立即预定").exists() || text("立即预订").exists()) {
+                updateStatus("找到立即预订按钮，立即点击...");
+                if (text("立即预定").exists()) {
+                    var orderBtn = text("立即预定").findOne(200);
+                    if (orderBtn) {
+                        orderBtn.click();
+                        console.log("立即预定按钮点击完成");
+                    }
+                } else {
+                    var orderBtn2 = text("立即预订").findOne(200);
+                    if (orderBtn2) {
+                        orderBtn2.click();
+                        console.log("立即预订按钮点击完成");
+                    }
+                }
+                if (!orderBtn && !orderBtn2) {
+                    click(FENWANDAO_CONFIG.COORDS.BUY_NOW_BTN.x, FENWANDAO_CONFIG.COORDS.BUY_NOW_BTN.y);
+                    console.log("使用坐标点击立即预订按钮");
+                }
                 clicked = true;
-            } else if (text("立即预定").exists() || text("立即预订").exists()) {
-                updateStatus("找到立即预订按钮，点击中...");
-                text("立即预定").exists() ? text("立即预定").findOne().click() : text("立即预订").findOne().click();
+            } 
+            // 特惠购票按钮
+            else if (text("特惠购票").exists()) {
+                updateStatus("找到特惠购票按钮，立即点击...");
+                var specialBtn = text("特惠购票").findOne(200);
+                if (specialBtn) {
+                    specialBtn.click();
+                    console.log("特惠购票按钮点击完成");
+                } else {
+                    click(FENWANDAO_CONFIG.COORDS.BUY_NOW_BTN.x, FENWANDAO_CONFIG.COORDS.BUY_NOW_BTN.y);
+                    console.log("使用坐标点击特惠购票按钮");
+                }
                 clicked = true;
-            } else if (text("确认选择").exists()) {
-                updateStatus("找到确认选择按钮，点击中...");
-                text("确认选择").findOne().click();
-                clicked = true;
-            } else {
-                // 尝试使用坐标点击
-                updateStatus("未找到按钮文本，尝试使用坐标点击");
+            } 
+            // 使用坐标点击
+            else {
+                updateStatus("未找到购买按钮文本，使用坐标点击");
                 click(FENWANDAO_CONFIG.COORDS.BUY_NOW_BTN.x, FENWANDAO_CONFIG.COORDS.BUY_NOW_BTN.y);
+                console.log("使用坐标点击可能的购买按钮位置");
             }
             
-            sleep(FENWANDAO_CONFIG.CLICK_CONFIG.INTERVAL); // 使用配置中的间隔时间
+            // 极短暂等待，让UI响应
+            sleep(20);
             
-            // 检查是否进入选择页面
-            if (text("选择场次").exists() || text("选择票品").exists() || text("提交订单").exists()) {
-                updateStatus("已进入选择页面", "#00aa00");
-                selectTicketAndConfirm();
-                return;
-            }
-            
-            if (attempts % 10 === 0) {
-                updateStatus("已点击" + attempts + "次，继续尝试...");
+            // 立即检查是否需要点击确认按钮
+            checkAndClickConfirmButton();
+        } catch (e) {
+            console.error("立即点击尝试失败: " + e);
+        }
+        
+        // 只有在第一次点击不成功时，才进入循环尝试
+        if (!clicked) {
+            while (!clicked && attempts < maxAttempts) {
+                attempts++;
+                
+                try {
+                    // 尝试通过文本查找按钮，但跳过"预约抢票"和"组队抢票"按钮
+                    if (text("立即购买").exists()) {
+                        updateStatus("找到立即购买按钮，点击中...");
+                        text("立即购买").findOne(100).click();
+                        clicked = true;
+                    } else if (text("立即预定").exists() || text("立即预订").exists()) {
+                        updateStatus("找到立即预订按钮，点击中...");
+                        text("立即预定").exists() ? text("立即预定").findOne(100).click() : text("立即预订").findOne(100).click();
+                        clicked = true;
+                    } else if (text("确认选择").exists()) {
+                        updateStatus("找到确认选择按钮，点击中...");
+                        text("确认选择").findOne(100).click();
+                        clicked = true;
+                    } else if (text("特惠购票").exists()) {
+                        updateStatus("找到特惠购票按钮，点击中...");
+                        text("特惠购票").findOne(100).click();
+                        clicked = true;
+                    } else {
+                        // 尝试使用坐标点击
+                        var message = "未找到购买按钮文本，尝试使用坐标点击";
+                        // 每20次才更新一次状态，减少UI更新开销
+                        if (attempts % 20 === 0) {
+                            updateStatus(message + " (尝试 " + attempts + ")");
+                        }
+                        click(FENWANDAO_CONFIG.COORDS.BUY_NOW_BTN.x, FENWANDAO_CONFIG.COORDS.BUY_NOW_BTN.y);
+                    }
+                    
+                    // 极短等待
+                    sleep(FENWANDAO_CONFIG.CLICK_CONFIG.INTERVAL);
+                    
+                    // 每次点击后立即检查确认按钮
+                    if (checkAndClickConfirmButton()) {
+                        clicked = true;
+                        break;
+                    }
+                } catch (e) {
+                    console.error("点击循环中出错: " + e);
+                    // 继续尝试下一次点击
+                }
+                
+                // 检查是否已经进入了选择页面
+                if (attempts % 10 === 0 && (text("选择场次").exists() || text("选择票品").exists() || text("提交订单").exists())) {
+                    updateStatus("已进入选择页面", "#00aa00");
+                    selectTicketAndConfirm();
+                    break;
+                }
             }
         }
         
-        if (!clicked) {
-            updateStatus("点击购买按钮达到最大尝试次数", "#ffaa00");
-            // 尝试直接进入下一步
+        if (!clicked && attempts >= maxAttempts) {
+            updateStatus("点击购买按钮失败，已达到最大尝试次数", "#aa0000");
+            // 仍然尝试进行下一步
             selectTicketAndConfirm();
         }
     });
+}
+
+/**
+ * 检查并点击确认按钮
+ * @returns {boolean} 是否找到并点击了确认按钮
+ */
+function checkAndClickConfirmButton() {
+    try {
+        console.log("检查确认按钮...");
+        
+        // 检查各种可能的确认按钮
+        if (text("确认").exists()) {
+            console.log("找到确认按钮(text)，立即点击");
+            text("确认").findOne(500).click();
+            return true;
+        } 
+        else if (desc("确认").exists()) {
+            console.log("找到确认按钮(desc)，立即点击");
+            desc("确认").findOne(500).click();
+            return true;
+        }
+        else if (textContains("确认").exists() && !textContains("确认并支付").exists()) {
+            console.log("找到包含确认的按钮(textContains)，立即点击");
+            textContains("确认").findOne(500).click();
+            return true;
+        }
+        else if (descContains("确认").exists() && !descContains("确认并支付").exists()) {
+            console.log("找到包含确认的按钮(descContains)，立即点击");
+            descContains("确认").findOne(500).click();
+            return true;
+        }
+        else if (className("android.widget.Button").text("确认").exists()) {
+            console.log("找到确认按钮(Button+text)，立即点击");
+            className("android.widget.Button").text("确认").findOne(500).click();
+            return true;
+        }
+        else if (className("android.widget.Button").desc("确认").exists()) {
+            console.log("找到确认按钮(Button+desc)，立即点击");
+            className("android.widget.Button").desc("确认").findOne(500).click();
+            return true;
+        }
+        
+        // 如果没有找到具体的控件，尝试使用坐标点击
+        console.log("未找到确认按钮控件，尝试使用坐标点击");
+        click(FENWANDAO_CONFIG.COORDS.CONFIRM_BTN.x, FENWANDAO_CONFIG.COORDS.CONFIRM_BTN.y);
+        
+        // 再次检查是否已进入下一步
+        sleep(100);
+        if (text("选择场次").exists() || text("选择票品").exists() || text("提交订单").exists()) {
+            console.log("坐标点击确认按钮后已进入下一页面");
+            return true;
+        }
+        
+        return false;
+    } catch (e) {
+        console.error("检查确认按钮时出错: " + e);
+        return false;
+    }
 }
 
 /**
@@ -848,6 +1011,14 @@ function selectTicketAndConfirm() {
             // 获取用户选择的票价
             var selectedPrice = ui.priceSpinner.getSelectedItem().toString();
             var priceFound = false;
+            
+            // 立即尝试点击确认按钮（因为有时候会直接跳到确认页面）
+            if (checkAndClickConfirmButton()) {
+                console.log("已直接点击确认按钮");
+                // 点击成功后，立即进入下一步
+                submitFenwandaoOrder();
+                return;
+            }
             
             // 根据用户选择确定票价优先级
             var priorities = [];
@@ -863,14 +1034,51 @@ function selectTicketAndConfirm() {
                 }
             }
             
+            // 快速尝试直接多次点击票价位置
+            console.log("尝试直接点击票价位置...");
+            click(FENWANDAO_CONFIG.COORDS.TICKET_SELECT.x, FENWANDAO_CONFIG.COORDS.TICKET_SELECT.y);
+            sleep(30);
+            
+            // 再次尝试点击确认按钮
+            if (checkAndClickConfirmButton()) {
+                console.log("票价点击后已找到确认按钮");
+                submitFenwandaoOrder();
+                return;
+            }
+            
             // 尝试按优先级选择票价
             for (var i = 0; i < priorities.length && !priceFound; i++) {
                 var price = priorities[i];
                 updateStatus("尝试选择票价: " + price);
                 
+                // 尝试多种方式查找票价
                 if (text(price).exists()) {
-                    text(price).findOne().click();
-                    priceFound = true;
+                    try {
+                        console.log("找到票价文本: " + price);
+                        text(price).findOne(500).click();
+                        priceFound = true;
+                    } catch (e) {
+                        console.error("点击票价文本失败: " + e);
+                    }
+                } else if (textContains(price).exists()) {
+                    try {
+                        console.log("找到包含票价的文本: " + price);
+                        textContains(price).findOne(500).click();
+                        priceFound = true;
+                    } catch (e) {
+                        console.error("点击包含票价的文本失败: " + e);
+                    }
+                } else if (descContains(price).exists()) {
+                    try {
+                        console.log("找到包含票价的描述: " + price);
+                        descContains(price).findOne(500).click();
+                        priceFound = true;
+                    } catch (e) {
+                        console.error("点击包含票价的描述失败: " + e);
+                    }
+                }
+                
+                if (priceFound) {
                     updateStatus("已选择票价: " + price, "#00aa00");
                     break;
                 }
@@ -878,21 +1086,42 @@ function selectTicketAndConfirm() {
             
             if (!priceFound) {
                 updateStatus("未找到可选票价，直接点击预设坐标", "#ffaa00");
-                click(FENWANDAO_CONFIG.COORDS.TICKET_SELECT.x, FENWANDAO_CONFIG.COORDS.TICKET_SELECT.y);
+                // 多次尝试点击，提高成功率
+                for (var j = 0; j < 3; j++) {
+                    click(FENWANDAO_CONFIG.COORDS.TICKET_SELECT.x, FENWANDAO_CONFIG.COORDS.TICKET_SELECT.y);
+                    sleep(20);
+                }
             }
             
-            sleep(200); // 减少等待时间
+            // 极短等待让UI响应
+            sleep(30);
             
-            // 点击确认按钮
-            updateStatus("点击确认按钮...");
-            
-            if (text("确认").exists()) {
-                text("确认").findOne().click();
-            } else {
+            // 多次尝试点击确认按钮
+            var confirmClicked = false;
+            for (var k = 0; k < 5; k++) {
+                if (checkAndClickConfirmButton()) {
+                    confirmClicked = true;
+                    break;
+                }
+                // 尝试点击预设坐标
                 click(FENWANDAO_CONFIG.COORDS.CONFIRM_BTN.x, FENWANDAO_CONFIG.COORDS.CONFIRM_BTN.y);
+                sleep(30);
             }
             
-            sleep(200); // 减少等待时间
+            if (!confirmClicked) {
+                // 如果未能点击确认按钮，直接使用坐标多次点击
+                updateStatus("未找到确认按钮，使用坐标多次点击", "#ffaa00");
+                for (var l = 0; l < 5; l++) {
+                    click(FENWANDAO_CONFIG.COORDS.CONFIRM_BTN.x, FENWANDAO_CONFIG.COORDS.CONFIRM_BTN.y);
+                    sleep(30);
+                }
+            }
+            
+            // 检查是否已经进入下一页面
+            sleep(50);
+            if (text("提交订单").exists() || descContains("提交订单").exists() || textContains("提交订单").exists()) {
+                updateStatus("已进入提交订单页面", "#00aa00");
+            }
             
             // 立即开始提交订单，不延迟
             submitFenwandaoOrder();
@@ -900,6 +1129,8 @@ function selectTicketAndConfirm() {
         } catch (e) {
             updateStatus("选择票品过程出错: " + e.message, "#aa0000");
             console.error("选择票品过程出错: " + e);
+            // 错误恢复：尝试继续下一步
+            submitFenwandaoOrder();
         }
     });
 }
@@ -918,29 +1149,82 @@ function submitFenwandaoOrder() {
             var orderSubmitted = false;
             
             // 设置更短的点击间隔
-            var clickInterval = Math.max(5, FENWANDAO_CONFIG.CLICK_CONFIG.INTERVAL / 2); // 点击间隔减半，但不少于5ms
+            var clickInterval = Math.max(1, FENWANDAO_CONFIG.CLICK_CONFIG.INTERVAL / 4); // 点击间隔缩短到四分之一，但不少于1ms
             
-            while (attempts < maxAttempts && !orderSubmitted) {
-                attempts++;
+            // 立即尝试点击
+            try {
+                console.log("立即尝试点击提交订单按钮...");
                 
-                // 减少日志更新频率以提高速度
-                if (attempts % 20 === 0) {
-                    updateStatus("提交订单尝试: " + attempts + "/" + maxAttempts);
-                }
-                
-                // 尝试点击"一键抢票"或"提交订单"按钮
+                // 尝试各种可能的提交订单按钮
                 if (text("一键抢票").exists()) {
-                    text("一键抢票").findOne().click();
+                    console.log("找到一键抢票按钮，立即点击");
+                    text("一键抢票").findOne(300).click();
+                    orderSubmitted = true;
                 } else if (text("提交订单").exists()) {
-                    text("提交订单").findOne().click();
+                    console.log("找到提交订单按钮，立即点击");
+                    text("提交订单").findOne(300).click();
+                    orderSubmitted = true;
                 } else if (descContains("提交").exists()) {
-                    descContains("提交").findOne().click();
+                    console.log("找到提交按钮描述，立即点击");
+                    descContains("提交").findOne(300).click();
+                    orderSubmitted = true;
+                } else if (textContains("提交").exists()) {
+                    console.log("找到提交按钮文本，立即点击");
+                    textContains("提交").findOne(300).click();
+                    orderSubmitted = true;
+                } else if (className("android.widget.Button").text("提交订单").exists()) {
+                    console.log("找到提交订单按钮(Button+text)，立即点击");
+                    className("android.widget.Button").text("提交订单").findOne(300).click();
+                    orderSubmitted = true;
+                } else if (className("android.widget.Button").desc("提交订单").exists()) {
+                    console.log("找到提交订单按钮(Button+desc)，立即点击");
+                    className("android.widget.Button").desc("提交订单").findOne(300).click();
+                    orderSubmitted = true;
                 } else {
+                    // 尝试坐标点击
+                    console.log("未找到提交订单按钮，使用坐标点击");
                     click(FENWANDAO_CONFIG.COORDS.ONE_CLICK_BUY.x, FENWANDAO_CONFIG.COORDS.ONE_CLICK_BUY.y);
                 }
                 
+                // 极短等待
+                sleep(30);
+                
+                // 检查是否进入支付页面
+                if (text("确认支付").exists() || text("确认付款").exists() || 
+                    descContains("确认支付").exists() || descContains("确认付款").exists()) {
+                    console.log("已进入支付页面，立即确认支付");
+                    updateStatus("已进入支付页面", "#00aa00");
+                    confirmPayment();
+                    return;
+                }
+            } catch (e) {
+                console.error("立即点击提交订单尝试失败: " + e);
+            }
+            
+            // 如果第一次点击不成功，进入密集点击模式
+            while (attempts < maxAttempts && !orderSubmitted) {
+                attempts++;
+                
+                try {
+                    // 尝试点击"一键抢票"或"提交订单"按钮
+                    if (text("一键抢票").exists()) {
+                        text("一键抢票").findOne(300).click();
+                    } else if (text("提交订单").exists()) {
+                        text("提交订单").findOne(300).click();
+                    } else if (descContains("提交").exists()) {
+                        descContains("提交").findOne(300).click();
+                    } else if (textContains("提交").exists() && !textContains("提交评价").exists()) {
+                        textContains("提交").findOne(300).click();
+                    } else {
+                        click(FENWANDAO_CONFIG.COORDS.ONE_CLICK_BUY.x, FENWANDAO_CONFIG.COORDS.ONE_CLICK_BUY.y);
+                    }
+                } catch (e) {
+                    console.error("循环点击提交订单时出错: " + e);
+                    // 继续尝试
+                }
+                
                 // 最小化等待时间
-                sleep(clickInterval); // 使用更短的点击间隔
+                sleep(clickInterval);
                 
                 // 检查是否进入支付页面
                 if (text("确认支付").exists() || text("确认付款").exists() || 
@@ -952,18 +1236,32 @@ function submitFenwandaoOrder() {
                 }
                 
                 // 点击"确认"按钮（如果出现）
-                if (text("确认").exists()) {
-                    text("确认").findOne().click();
-                    sleep(clickInterval);
+                try {
+                    if (text("确认").exists()) {
+                        text("确认").findOne(300).click();
+                    } else if (desc("确认").exists()) {
+                        desc("确认").findOne(300).click();
+                    }
+                } catch (e) {
+                    // 忽略错误，继续尝试
+                }
+                
+                // 减少日志更新频率以提高速度
+                if (attempts % 20 === 0) {
+                    updateStatus("提交订单尝试: " + attempts + "/" + maxAttempts);
                 }
             }
             
             if (!orderSubmitted) {
                 updateStatus("提交订单失败，达到最大尝试次数", "#aa0000");
+                // 尝试直接确认支付，有时提交成功但未检测到
+                confirmPayment();
             }
         } catch (e) {
             updateStatus("提交订单过程出错: " + e.message, "#aa0000");
             console.error("提交订单过程出错: " + e);
+            // 尝试恢复，直接进入支付确认
+            confirmPayment();
         }
     });
 }
@@ -981,35 +1279,99 @@ function confirmPayment() {
             var paymentConfirmed = false;
             
             // 设置更短的点击间隔
-            var clickInterval = Math.max(5, FENWANDAO_CONFIG.CLICK_CONFIG.INTERVAL / 2); // 点击间隔减半，但不少于5ms
+            var clickInterval = Math.max(1, FENWANDAO_CONFIG.CLICK_CONFIG.INTERVAL / 4); // 点击间隔缩短到四分之一，但不少于1ms
             
             toast("即将确认支付，到手！");
             
-            while (attempts < maxAttempts && !paymentConfirmed) {
-                attempts++;
+            // 立即尝试点击
+            try {
+                console.log("立即尝试点击确认支付按钮...");
                 
-                // 减少日志更新频率
-                if (attempts % 20 === 0) {
-                    updateStatus("已点击确认支付" + attempts + "次，继续尝试...");
-                }
-                
-                // 尝试多种方式点击"确认支付"或"确认付款"按钮
+                // 尝试多种方式查找确认支付按钮
                 if (text("确认支付").exists()) {
-                    text("确认支付").findOne().click();
+                    console.log("找到确认支付按钮(text)，立即点击");
+                    text("确认支付").findOne(300).click();
+                    paymentConfirmed = true;
                 } else if (text("确认付款").exists()) {
-                    text("确认付款").findOne().click();
+                    console.log("找到确认付款按钮(text)，立即点击");
+                    text("确认付款").findOne(300).click();
+                    paymentConfirmed = true;
                 } else if (descContains("确认支付").exists()) {
-                    descContains("确认支付").findOne().click();
+                    console.log("找到确认支付按钮(descContains)，立即点击");
+                    descContains("确认支付").findOne(300).click();
+                    paymentConfirmed = true;
                 } else if (descContains("确认付款").exists()) {
-                    descContains("确认付款").findOne().click();
+                    console.log("找到确认付款按钮(descContains)，立即点击");
+                    descContains("确认付款").findOne(300).click();
+                    paymentConfirmed = true;
                 } else if (text("立即付款").exists()) {
-                    text("立即付款").findOne().click();
+                    console.log("找到立即付款按钮(text)，立即点击");
+                    text("立即付款").findOne(300).click();
+                    paymentConfirmed = true;
+                } else if (className("android.widget.Button").textContains("支付").exists()) {
+                    console.log("找到支付按钮(Button+textContains)，立即点击");
+                    className("android.widget.Button").textContains("支付").findOne(300).click();
+                    paymentConfirmed = true;
+                } else if (className("android.widget.Button").textContains("付款").exists()) {
+                    console.log("找到付款按钮(Button+textContains)，立即点击");
+                    className("android.widget.Button").textContains("付款").findOne(300).click();
+                    paymentConfirmed = true;
                 } else {
+                    // 使用坐标点击
+                    console.log("未找到确认支付按钮，使用坐标点击");
                     click(FENWANDAO_CONFIG.COORDS.CONFIRM_PAY.x, FENWANDAO_CONFIG.COORDS.CONFIRM_PAY.y);
                 }
                 
+                // 极短等待
+                sleep(30);
+                
+                // 检查是否支付成功
+                if (text("支付成功").exists() || text("订单详情").exists() || 
+                    descContains("支付成功").exists() || descContains("订单详情").exists()) {
+                    updateStatus("抢票成功！支付完成", "#00aa00");
+                    toast("抢票成功！支付完成");
+                    
+                    // 播放提示音，通知用户抢票成功
+                    try {
+                        device.vibrate(1000); // 震动提示
+                        // 尝试播放系统提示音
+                        media.playMusic("system/media/audio/notifications/Popcorn.ogg");
+                    } catch (e) {
+                        console.log("播放提示音失败: " + e);
+                    }
+                    
+                    return;
+                }
+            } catch (e) {
+                console.error("立即点击确认支付尝试失败: " + e);
+            }
+            
+            // 如果第一次点击不成功，进入密集点击模式
+            while (attempts < maxAttempts && !paymentConfirmed) {
+                attempts++;
+                
+                try {
+                    // 尝试多种方式点击"确认支付"或"确认付款"按钮
+                    if (text("确认支付").exists()) {
+                        text("确认支付").findOne(300).click();
+                    } else if (text("确认付款").exists()) {
+                        text("确认付款").findOne(300).click();
+                    } else if (descContains("确认支付").exists()) {
+                        descContains("确认支付").findOne(300).click();
+                    } else if (descContains("确认付款").exists()) {
+                        descContains("确认付款").findOne(300).click();
+                    } else if (text("立即付款").exists()) {
+                        text("立即付款").findOne(300).click();
+                    } else {
+                        click(FENWANDAO_CONFIG.COORDS.CONFIRM_PAY.x, FENWANDAO_CONFIG.COORDS.CONFIRM_PAY.y);
+                    }
+                } catch (e) {
+                    console.error("循环点击确认支付时出错: " + e);
+                    // 继续尝试
+                }
+                
                 // 最小化等待时间
-                sleep(clickInterval); // 使用更短的点击间隔
+                sleep(clickInterval);
                 
                 // 检查是否支付成功
                 if (text("支付成功").exists() || text("订单详情").exists() || 
@@ -1029,6 +1391,11 @@ function confirmPayment() {
                     
                     break;
                 }
+                
+                // 减少日志更新频率
+                if (attempts % 20 === 0) {
+                    updateStatus("已点击确认支付" + attempts + "次，继续尝试...");
+                }
             }
             
             if (!paymentConfirmed) {
@@ -1038,6 +1405,87 @@ function confirmPayment() {
         } catch (e) {
             updateStatus("确认支付过程出错: " + e.message, "#aa0000");
             console.error("确认支付过程出错: " + e);
+        }
+    });
+}
+
+/**
+ * 直接点击立即购买按钮（位于截图中右侧的按钮）
+ * 这个函数用于避免脚本卡住的情况
+ */
+function clickBuyNowButton() {
+    threads.start(function() {
+        try {
+            console.log("尝试直接点击立即购买按钮...");
+            updateStatus("尝试点击立即购买按钮...", "#ffaa00");
+            
+            // 检查是否已经有购买按钮（文本匹配）
+            if (text("立即购买").exists()) {
+                console.log("找到立即购买按钮文本，直接点击");
+                text("立即购买").findOne().click();
+                updateStatus("已点击立即购买按钮", "#00aa00");
+                sleep(50); // 极短等待
+                startBuyButtonClicking();
+                return;
+            } 
+            else if (text("立即预定").exists() || text("立即预订").exists()) {
+                console.log("找到立即预订按钮文本，直接点击");
+                text("立即预定").exists() ? text("立即预定").findOne().click() : text("立即预订").findOne().click();
+                updateStatus("已点击立即预订按钮", "#00aa00");
+                sleep(50); // 极短等待
+                startBuyButtonClicking();
+                return;
+            }
+            else if (text("特惠购票").exists()) {
+                console.log("找到特惠购票按钮文本，直接点击");
+                text("特惠购票").findOne().click();
+                updateStatus("已点击特惠购票按钮", "#00aa00");
+                sleep(50); // 极短等待
+                startBuyButtonClicking();
+                return;
+            }
+            
+            // 没有找到文本，尝试点击截图中右侧立即购买按钮的位置
+            console.log("未找到购买按钮文本，开始高频点击右侧立即购买按钮位置");
+            var buyBtnX = device.width * 0.75; // 屏幕75%位置，右侧按钮
+            var buyBtnY = device.height * 0.92; // 屏幕92%位置，底部
+            
+            // 高频点击右侧立即购买按钮位置（连续点击20次）
+            for (var i = 0; i < 20; i++) {
+                click(buyBtnX, buyBtnY);
+                sleep(10); // 极短延迟
+                
+                // 每5次检查一下是否已经出现购买按钮
+                if (i % 5 === 0 && (text("立即购买").exists() || text("立即预订").exists() || text("立即预定").exists() || text("特惠购票").exists())) {
+                    console.log("高频点击后检测到购买按钮，继续点击");
+                    updateStatus("检测到购买按钮，继续点击", "#00aa00");
+                    startBuyButtonClicking();
+                    return;
+                }
+            }
+            
+            // 按顺序尝试点击屏幕底部多个位置，但仅限右侧区域（立即购买按钮区域）
+            console.log("尝试点击屏幕底部右侧区域");
+            for (var i = 0.5; i <= 0.9; i += 0.1) {
+                click(device.width * i, device.height * 0.92);
+                sleep(20);
+                if (text("立即购买").exists() || text("立即预订").exists() || text("立即预定").exists() || text("特惠购票").exists()) {
+                    console.log("点击位置 " + i + " 后检测到购买按钮，继续点击");
+                    updateStatus("检测到购买按钮，继续点击", "#00aa00");
+                    startBuyButtonClicking();
+                    return;
+                }
+            }
+            
+            // 如果上述方法都未成功，开始持续高频监测
+            console.log("未通过直接点击找到购买按钮，开始持续高频监测");
+            updateStatus("开始持续高频监测购买按钮...", "#ffaa00");
+            startBuyButtonMonitoring();
+        } catch (e) {
+            console.error("点击立即购买按钮失败: " + e);
+            updateStatus("点击失败，开始持续监测", "#ffaa00");
+            // 即使失败也开始监测
+            startBuyButtonMonitoring();
         }
     });
 }
@@ -1059,6 +1507,33 @@ function startFenwandaoTicketGrabbing() {
         updateStatus("请先手动打开纷玩岛应用并进入演出页面", "#aa0000");
         toast("请先手动打开纷玩岛应用并进入演出页面");
         return;
+    }
+    
+    // 首先检查是否已经有购买按钮出现
+    if (text("立即购买").exists() || text("立即预订").exists() || text("立即预定").exists() || text("特惠购票").exists()) {
+        console.log("检测到购买按钮，立即开始点击");
+        updateStatus("检测到购买按钮，立即开始点击", "#00aa00");
+        toast("检测到购买按钮，立即开始点击");
+        startBuyButtonClicking();
+        return; // 如果已经有购买按钮，直接执行点击
+    }
+    
+    // 立即检查是否有组队抢票按钮，将其作为确认已进入详情页的标志
+    if (text("组队抢票").exists() || descContains("组队抢票").exists() || 
+        className("android.widget.Button").desc("组队抢票").exists()) {
+        
+        console.log("检测到组队抢票按钮，确认已进入演出详情页");
+        updateStatus("确认已进入演出详情页，尝试点击立即购买按钮", "#00aa00");
+        toast("已确认在演出详情页，尝试点击立即购买按钮");
+        
+        // 直接尝试点击立即购买按钮
+        clickBuyNowButton();
+        
+    } else {
+        // 如果没有找到组队抢票按钮，提示用户
+        console.log("未检测到组队抢票按钮，可能未进入演出详情页");
+        updateStatus("未检测到组队抢票按钮，请确保在正确页面", "#ffaa00");
+        toast("请确保已进入演出详情页，系统将持续检测页面状态");
     }
     
     // 解析时间
@@ -1104,39 +1579,63 @@ function startFenwandaoTicketGrabbing() {
 function showDebugInfo(isDebug) {
     if (!isDebug) return;
     
-    // 使用子线程执行，避免UI线程阻塞
+    // 使用线程定期显示控件信息，便于调试
     threads.start(function() {
         try {
-            // 重置测试点索引
-            currentTestIndex = 0;
-            
-            // 先扫描页面，查找可能的按钮
             var foundButtons = [];
             
-            console.log("=== 调试模式启动 ===");
-            console.log("设备分辨率: " + device.width + "x" + device.height);
-            
-            // 检测各种可能的控件
+            // 检测预约抢票控件
             if (className("android.view.View").desc("预约抢票").exists()) {
-                foundButtons.push("预约抢票(desc)");
+                foundButtons.push("预约抢票(View+desc)");
             }
+            
+            if (className("android.view.View").desc("组队抢票").exists()) {
+                foundButtons.push("组队抢票(View+desc)");
+            }
+            
+            // 检测Button类型的组队抢票控件
+            if (className("android.widget.Button").desc("组队抢票").exists()) {
+                foundButtons.push("组队抢票(Button+desc)");
+                
+                // 获取控件详细信息
+                var teamButton = className("android.widget.Button").desc("组队抢票").findOne(1000);
+                if (teamButton) {
+                    console.log("组队抢票按钮信息: { " +
+                        "bounds: [" + teamButton.bounds().left + ", " + teamButton.bounds().top + ", " + 
+                        teamButton.bounds().right + ", " + teamButton.bounds().bottom + "], " +
+                        "clickable: " + teamButton.clickable() + ", " +
+                        "desc: '" + teamButton.desc() + "'" +
+                    " }");
+                }
+            }
+            
+            // 检测Button类型的预约抢票控件
+            if (className("android.widget.Button").desc("预约抢票").exists()) {
+                foundButtons.push("预约抢票(Button+desc)");
+            }
+            
+            // 检测文本控件
             if (text("预约抢票").exists()) {
                 foundButtons.push("预约抢票(text)");
             }
-            if (descContains("预约抢票").exists()) {
-                foundButtons.push("预约抢票(descContains)");
+            
+            if (text("组队抢票").exists()) {
+                foundButtons.push("组队抢票(text)");
             }
-            if (textContains("预约抢票").exists()) {
-                foundButtons.push("预约抢票(textContains)");
-            }
+            
             if (className("android.widget.Button").textContains("预约").exists()) {
                 foundButtons.push("预约按钮");
+            }
+            
+            if (className("android.widget.Button").textContains("组队").exists()) {
+                foundButtons.push("组队按钮");
             }
             
             // 检测其他按钮
             if (text("立即购买").exists()) foundButtons.push("立即购买");
             if (text("立即预定").exists() || text("立即预订").exists()) foundButtons.push("立即预订");
             if (text("确认选择").exists()) foundButtons.push("确认选择");
+            if (text("特惠购票").exists()) foundButtons.push("特惠购票");
             
             if (foundButtons.length > 0) {
                 console.log("在当前页面找到以下按钮: " + foundButtons.join(", "));
@@ -1145,97 +1644,18 @@ function showDebugInfo(isDebug) {
                 // 按优先级尝试点击控件
                 var buttonClicked = false;
                 
-                // 优先级1: 精确匹配预约抢票(desc)
-                if (!buttonClicked && className("android.view.View").desc("预约抢票").exists()) {
-                    console.log("找到预约抢票控件(desc)，直接点击");
-                    updateStatus("找到预约抢票控件(desc)，直接点击", "#00aa00");
-                    setTimeout(function() {
-                        className("android.view.View").desc("预约抢票").findOne().click();
-                        console.log("预约抢票控件点击完成");
-                        updateStatus("预约抢票控件点击完成", "#00aa00");
-                    }, 1000);
+                // 优先点击立即购买等按钮
+                if (!buttonClicked && (text("立即购买").exists() || text("立即预定").exists() || 
+                    text("立即预订").exists() || text("特惠购票").exists())) {
+                    updateStatus("检测到可购买按钮，开始抢票", "#00aa00");
                     buttonClicked = true;
-                }
-                
-                // 优先级2: 精确匹配预约抢票(text)
-                else if (!buttonClicked && text("预约抢票").exists()) {
-                    console.log("找到预约抢票按钮(text)，直接点击");
-                    updateStatus("找到预约抢票按钮(text)，直接点击", "#00aa00");
-                    setTimeout(function() {
-                        text("预约抢票").findOne().click();
-                        console.log("预约抢票按钮点击完成");
-                        updateStatus("预约抢票按钮点击完成", "#00aa00");
-                    }, 1000);
-                    buttonClicked = true;
-                }
-                
-                // 优先级3: 部分匹配预约抢票(descContains)
-                else if (!buttonClicked && descContains("预约抢票").exists()) {
-                    console.log("找到包含预约抢票的控件(descContains)，直接点击");
-                    updateStatus("找到包含预约抢票的控件(descContains)，直接点击", "#00aa00");
-                    setTimeout(function() {
-                        descContains("预约抢票").findOne().click();
-                        console.log("预约抢票控件点击完成");
-                        updateStatus("预约抢票控件点击完成", "#00aa00");
-                    }, 1000);
-                    buttonClicked = true;
-                }
-                
-                // 优先级4: 部分匹配预约抢票(textContains)
-                else if (!buttonClicked && textContains("预约抢票").exists()) {
-                    console.log("找到包含预约抢票的控件(textContains)，直接点击");
-                    updateStatus("找到包含预约抢票的控件(textContains)，直接点击", "#00aa00");
-                    setTimeout(function() {
-                        textContains("预约抢票").findOne().click();
-                        console.log("预约抢票控件点击完成");
-                        updateStatus("预约抢票控件点击完成", "#00aa00");
-                    }, 1000);
-                    buttonClicked = true;
-                }
-                
-                // 优先级5: 匹配预约按钮
-                else if (!buttonClicked && className("android.widget.Button").textContains("预约").exists()) {
-                    console.log("找到预约按钮，直接点击");
-                    updateStatus("找到预约按钮，直接点击", "#00aa00");
-                    setTimeout(function() {
-                        className("android.widget.Button").textContains("预约").findOne().click();
-                        console.log("预约按钮点击完成");
-                        updateStatus("预约按钮点击完成", "#00aa00");
-                    }, 1000);
-                    buttonClicked = true;
-                }
-                
-                if (buttonClicked) {
-                    return;
                 }
             } else {
-                console.log("在当前页面没有找到任何已知按钮");
-                updateStatus("没有找到已知按钮，将使用坐标点击", "#ffaa00");
-                
-                // 尝试抓取当前屏幕上所有控件信息，帮助调试
-                console.log("当前页面控件信息:");
-                textMatches(/.+/).find().forEach(function(t) {
-                    console.log("文本控件: " + t.text());
-                });
-                descMatches(/.+/).find().forEach(function(d) {
-                    console.log("描述控件: " + d.desc());
-                });
+                console.log("未在当前页面找到任何预期按钮");
+                updateStatus("未找到预期的按钮，继续监测", "#ffaa00");
             }
-            
-            console.log("将依次测试以下坐标点：");
-            for (var i = 0; i < TEST_COORDS.length; i++) {
-                console.log("点 #" + (i+1) + ": x=" + TEST_COORDS[i].x + ", y=" + TEST_COORDS[i].y);
-            }
-            
-            // 等待1秒后开始第一次点击
-            setTimeout(function() {
-                console.log("开始执行第一次测试点击");
-                performConfirmClick(true);
-            }, 1000);
-            
         } catch (e) {
-            console.error("调试操作失败: " + e);
-            updateStatus("调试操作失败: " + e.message, "#aa0000");
+            console.error("显示调试信息出错: " + e);
         }
     });
 }
@@ -1404,6 +1824,175 @@ global.showDebugInfo = showDebugInfo;
 global.isInBookingPage = isInBookingPage;
 global.forceTap = forceTap;
 global.specialFenwandaoClick = specialFenwandaoClick;
+global.startBuyButtonMonitoring = startBuyButtonMonitoring;
+global.clickBuyNowButton = clickBuyNowButton;
 
 // 输出模块加载成功消息
 console.log("自动化操作模块加载成功"); 
+
+/**
+ * 持续监测购买按钮出现
+ */
+function startBuyButtonMonitoring() {
+    threads.start(function() {
+        try {
+            console.log("开始持续高频监测购买按钮出现...");
+            updateStatus("持续高频监测购买按钮中...", "#ffaa00");
+            
+            // 立即尝试点击右侧的立即购买按钮
+            console.log("尝试立即点击右侧立即购买按钮位置");
+            var buyBtnX = device.width * 0.75; // 屏幕75%位置，右侧按钮
+            var buyBtnY = device.height * 0.92; // 屏幕92%位置，底部
+            
+            // 连续快速点击10次
+            for (var i = 0; i < 10; i++) {
+                click(buyBtnX, buyBtnY);
+                sleep(5); // 极短延迟
+            }
+            
+            // 短暂等待后检查
+            sleep(50);
+            if (text("立即购买").exists() || text("立即预订").exists() || text("立即预定").exists() || text("特惠购票").exists()) {
+                updateStatus("点击后找到购买按钮，开始点击", "#00aa00");
+                startBuyButtonClicking();
+                return;
+            }
+            
+            // 定义重试计数和间隔
+            var retryCount = 0;
+            var maxRetries = 200000; // 设置一个非常大的值，实际上就是无限循环
+            var checkInterval = 20; // 每20毫秒检测一次，大幅提高频率
+            
+            // 记录开始时间
+            var startTime = new Date().getTime();
+            
+            // 创建一个循环检查是否出现了购买按钮
+            while (retryCount < maxRetries) {
+                retryCount++;
+                
+                try {
+                    // 检查各种可能的购买按钮
+                    if (text("立即购买").exists()) {
+                        updateStatus("找到立即购买按钮！开始点击", "#00aa00");
+                        console.log("在第 " + retryCount + " 次尝试时找到立即购买按钮");
+                        
+                        // 获取按钮位置并点击
+                        var btn = text("立即购买").findOne(50);
+                        if (btn) {
+                            console.log("点击立即购买按钮控件");
+                            btn.click();
+                        } else {
+                            console.log("使用坐标点击立即购买按钮");
+                            click(buyBtnX, buyBtnY);
+                        }
+                        
+                        sleep(5); // 极短等待
+                        startBuyButtonClicking(); // 继续执行点击流程
+                        return;
+                    } else if (text("立即预定").exists() || text("立即预订").exists()) {
+                        updateStatus("找到立即预订按钮！开始点击", "#00aa00");
+                        console.log("在第 " + retryCount + " 次尝试时找到立即预订按钮");
+                        
+                        // 获取按钮位置并点击
+                        var btn = text("立即预定").exists() ? 
+                            text("立即预定").findOne(50) : 
+                            text("立即预订").findOne(50);
+                        
+                        if (btn) {
+                            console.log("点击立即预订按钮控件");
+                            btn.click();
+                        } else {
+                            console.log("使用坐标点击立即预订按钮");
+                            click(buyBtnX, buyBtnY);
+                        }
+                        
+                        sleep(5); // 极短等待
+                        startBuyButtonClicking(); // 继续执行点击流程
+                        return;
+                    } else if (text("特惠购票").exists()) {
+                        updateStatus("找到特惠购票按钮！开始点击", "#00aa00");
+                        console.log("在第 " + retryCount + " 次尝试时找到特惠购票按钮");
+                        
+                        // 获取按钮位置并点击
+                        var btn = text("特惠购票").findOne(50);
+                        if (btn) {
+                            console.log("点击特惠购票按钮控件");
+                            btn.click();
+                        } else {
+                            console.log("使用坐标点击特惠购票按钮");
+                            click(buyBtnX, buyBtnY);
+                        }
+                        
+                        sleep(5); // 极短等待
+                        startBuyButtonClicking(); // 继续执行点击流程
+                        return;
+                    }
+                    
+                    // 每次检测都尝试点击一次可能的购买按钮位置，提高频率
+                    click(buyBtnX, buyBtnY);
+                    
+                    // 定期更新状态，避免过多日志
+                    if (retryCount % 200 === 0) {
+                        var currentTime = new Date().getTime();
+                        var elapsedSeconds = Math.floor((currentTime - startTime) / 1000);
+                        updateStatus("持续监测购买按钮... 已尝试 " + retryCount + " 次，已监测 " + elapsedSeconds + " 秒", "#ffaa00");
+                        
+                        // 每500次检测进行一次轻微刷新，防止页面卡住
+                        if (retryCount % 500 === 0) {
+                            console.log("执行轻微刷新和点击...");
+                            try {
+                                // 轻微下拉刷新
+                                swipe(device.width / 2, device.height / 4, device.width / 2, device.height / 4 + 20, 50);
+                                // 刷新后立即点击购买按钮位置
+                                sleep(30);
+                                click(buyBtnX, buyBtnY);
+                                
+                                // 检查是否点击成功
+                                sleep(20);
+                                if (text("立即购买").exists() || text("立即预订").exists() || text("立即预定").exists() || text("特惠购票").exists()) {
+                                    updateStatus("刷新后找到购买按钮，开始点击", "#00aa00");
+                                    startBuyButtonClicking();
+                                    return;
+                                }
+                            } catch (e) {
+                                console.log("刷新操作失败: " + e);
+                            }
+                        }
+                        
+                        // 每2000次检测提示用户并进行一次彻底刷新
+                        if (retryCount % 2000 === 0) {
+                            toast("仍在监测购买按钮，已监测 " + elapsedSeconds + " 秒");
+                            
+                            // 尝试更强的刷新方式
+                            console.log("执行更强的刷新...");
+                            try {
+                                // 向下滑动刷新
+                                swipe(device.width / 2, device.height / 3, device.width / 2, device.height * 2/3, 100);
+                                sleep(100);
+                                // 再向上滑动回来
+                                swipe(device.width / 2, device.height * 2/3, device.width / 2, device.height / 3, 100);
+                                sleep(50);
+                                // 立即点击可能的按钮位置
+                                click(buyBtnX, buyBtnY);
+                            } catch (e) {
+                                console.log("强刷新操作失败: " + e);
+                            }
+                        }
+                    }
+                    
+                    // 等待一段时间再次检测，但不要等太久
+                    sleep(checkInterval);
+                } catch (e) {
+                    console.error("检测购买按钮失败: " + e);
+                    sleep(50); // 出错后稍微等待
+                }
+            }
+            
+            // 如果达到最大尝试次数仍未找到（实际上不会到达这里）
+            updateStatus("多次尝试后未找到购买按钮，请检查页面状态", "#aa0000");
+        } catch (e) {
+            console.error("监测购买按钮线程出错: " + e);
+            updateStatus("监测过程出现错误: " + e.message, "#aa0000");
+        }
+    });
+}
