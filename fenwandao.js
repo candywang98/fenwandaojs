@@ -16,7 +16,6 @@ const CONFIG = {
         {
             url: "https://mtop.damai.cn/gw/mtop.common.getTimestamp/",
             headers: {
-                'Host': 'mtop.damai.cn',
                 'Content-Type': 'application/json;charset=utf-8',
                 'Accept': '*/*',
                 'User-Agent': 'floattime/1.1.1 (iPhone; iOS 15.6; Scale/3.00)',
@@ -30,6 +29,35 @@ const CONFIG = {
                     throw new Error('无效的大麦网时间戳响应');
                 }
                 return Number(data.data.t);
+            }
+        },
+        {
+            url: "https://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp",
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8',
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X)',
+                'Accept': '*/*'
+            },
+            parse: function(response) {
+                var data = JSON.parse(response);
+                if (!data.data || !data.data.t) {
+                    throw new Error('无效的淘宝时间戳响应');
+                }
+                return Number(data.data.t);
+            }
+        },
+        {
+            url: "https://www.baidu.com",
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X)'
+            },
+            parse: function(response) {
+                // 从响应头获取日期
+                var date = response.headers['Date'];
+                if (!date) {
+                    throw new Error('无法从百度获取时间');
+                }
+                return new Date(date).getTime();
             }
         }
     ],
@@ -126,20 +154,45 @@ function showToast(message, type) {
 
 // 获取服务器时间戳
 function getServerTimestamp() {
+    console.log("开始获取服务器时间...");
+    
     for (var i = 0; i < CONFIG.TIME_APIs.length; i++) {
         var api = CONFIG.TIME_APIs[i];
         try {
+            console.log("尝试获取时间，API: " + api.url);
             var options = {
                 headers: api.headers || {},
                 timeout: CONFIG.HTTP_TIMEOUT
             };
             var response = http.get(api.url, options);
-            var responseText = response.body.string();
-            return api.parse(responseText);
+            if (response && response.statusCode == 200) {
+                var timestamp;
+                if (api.url.includes("baidu")) {
+                    // 百度特殊处理，直接从响应头获取时间
+                    var date = response.headers['Date'];
+                    if (date) {
+                        timestamp = new Date(date).getTime();
+                        console.log("成功从百度获取时间: " + new Date(timestamp).toLocaleString());
+                    } else {
+                        throw new Error('百度响应头中没有Date字段');
+                    }
+                } else {
+                    // 其他API，正常解析响应
+                    var responseText = response.body.string();
+                    timestamp = api.parse(responseText);
+                    console.log("成功获取时间，API: " + api.url);
+                }
+                return timestamp;
+            } else {
+                throw new Error('HTTP状态码: ' + (response ? response.statusCode : '未知'));
+            }
         } catch (error) {
-            console.warn('API请求失败: ' + error.message);
+            console.warn('API请求失败 (' + api.url + '): ' + error.message);
         }
     }
+    
+    // 所有API都失败，使用本地时间
+    console.warn("所有服务器时间API都失败，使用本地时间代替");
     return Date.now();
 }
 
@@ -298,16 +351,62 @@ function startTicketProcessing() {
         var targetTime = ui.timeInput.text();
         console.log("设置的目标时间: " + targetTime);
         
-        var targetTimestamp = new Date("2024-" + targetTime).getTime();
+        // 验证时间格式
+        if (!targetTime || !/^\d{2}-\d{2} \d{2}:\d{2}$/.test(targetTime)) {
+            throw new Error("时间格式不正确，请使用MM-DD HH:mm格式");
+        }
+        
+        // 手动解析日期和时间
+        var parts = targetTime.split(" ");
+        var dateParts = parts[0].split("-");
+        var timeParts = parts[1].split(":");
+        
+        var month = parseInt(dateParts[0]) - 1; // 月份从0开始
+        var day = parseInt(dateParts[1]);
+        var hour = parseInt(timeParts[0]);
+        var minute = parseInt(timeParts[1]);
+        
+        // 获取当前年份
+        var currentTime = getServerTimestamp();
+        var currentYear = new Date(currentTime).getFullYear();
+        console.log("当前年份: " + currentYear);
+        
+        // 创建目标日期对象，使用当前年份
+        var targetDate = new Date(currentYear, month, day, hour, minute);
+        console.log("解析后的目标日期: " + targetDate.toLocaleString());
+        
+        var targetTimestamp = targetDate.getTime();
         console.log("目标时间戳: " + targetTimestamp);
         
         // 计算等待时间
-        var currentTime = getServerTimestamp();
         console.log("当前服务器时间: " + currentTime);
         console.log("服务器时间显示: " + new Date(currentTime).toLocaleString());
         
         var waitTime = targetTimestamp - currentTime;
         console.log("需要等待的时间(ms): " + waitTime);
+        
+        // 检查等待时间是否有效
+        if (isNaN(waitTime)) {
+            throw new Error("计算等待时间出错，请检查时间设置");
+        }
+        
+        // 检查目标时间是否已过
+        if (waitTime < 0) {
+            // 如果目标时间已过，检查是否是跨年的情况
+            var nextYearDate = new Date(currentYear + 1, month, day, hour, minute);
+            var nextYearWaitTime = nextYearDate.getTime() - currentTime;
+            
+            if (nextYearWaitTime > 0) {
+                // 使用下一年的日期
+                targetDate = nextYearDate;
+                targetTimestamp = nextYearDate.getTime();
+                waitTime = nextYearWaitTime;
+                console.log("目标时间已过，使用下一年的日期: " + targetDate.toLocaleString());
+                console.log("新的等待时间(ms): " + waitTime);
+            } else {
+                throw new Error("设置的目标时间已过期，请设置未来的时间");
+            }
+        }
         
         // 如果还有超过2秒
         if (waitTime > 2000) {
@@ -318,15 +417,50 @@ function startTicketProcessing() {
                 showToast("距离抢票开始还有 " + waitSeconds + " 秒", "info");
             });
             
+            // 为调试目的，如果时间过长，缩短为30秒以内
+            if(waitTime > 30000) {
+                console.log("等待时间过长，为测试目的缩短为30秒");
+                waitTime = 30000;
+                waitSeconds = 30;
+            }
+            
             // 创建一个单独的线程等待，避免主线程睡眠
             threads.start(function() {
-                sleep(waitTime - 2000); // 等待到还剩2秒
+                var remainTime = waitTime;
+                var updateInterval = 5000; // 每5秒更新一次状态
+                var lastUpdate = new Date().getTime();
+                
+                // 分段等待，每段等待后更新状态
+                while(remainTime > 2000) {
+                    var waitThisTime = Math.min(updateInterval, remainTime - 2000);
+                    sleep(waitThisTime);
+                    remainTime -= waitThisTime;
+                    
+                    // 每5秒更新一次状态
+                    var now = new Date().getTime();
+                    if(now - lastUpdate >= updateInterval) {
+                        var remainSeconds = Math.floor(remainTime/1000);
+                        console.log("等待中...剩余" + remainSeconds + "秒");
+                        ui.run(function() {
+                            showToast("等待中...剩余" + remainSeconds + "秒", "info");
+                        });
+                        lastUpdate = now;
+                    }
+                }
+                
                 console.log("等待完成，开始监控购买按钮");
+                ui.run(function() {
+                    showToast("开始监控购买按钮", "success");
+                });
+                
                 // 开始监控购买按钮
                 startBuyButtonMonitoring();
             });
         } else {
             console.log("目标时间已到或小于2秒，立即开始监控");
+            ui.run(function() {
+                showToast("立即开始监控购买按钮", "success");
+            });
             // 直接开始监控购买按钮
             startBuyButtonMonitoring();
         }
@@ -340,6 +474,11 @@ function startTicketProcessing() {
 function startBuyButtonMonitoring() {
     console.log("=== 开始监控购买按钮 ===");
     
+    // 确保UI反馈
+    ui.run(function() {
+        showToast("开始监控购买按钮，正在刷新页面", "success");
+    });
+    
     threads.start(function() {
         try {
             console.log("=== 开始执行刷新监控 ===");
@@ -348,6 +487,12 @@ function startBuyButtonMonitoring() {
             var lastRefreshTime = new Date().getTime();
             var refreshInterval = 100; // 每100ms刷新一次
             var lastStatusTime = new Date().getTime();
+            
+            // 先执行一次初始刷新
+            console.log("执行初始刷新...");
+            var startY = device.height * 0.3;
+            var endY = device.height * 0.4;
+            swipe(device.width / 2, startY, device.width / 2, endY, 100);
             
             while (attempts < maxAttempts) {
                 attempts++;
@@ -382,7 +527,9 @@ function startBuyButtonMonitoring() {
                     if (currentTime - lastStatusTime >= 1000) {
                         var status = "正在查找购买按钮... 已尝试 " + attempts + " 次";
                         console.log(status);
-                        showToast(status, "info");
+                        ui.run(function() {
+                            showToast(status, "info");
+                        });
                         lastStatusTime = currentTime;
                     }
                 }
